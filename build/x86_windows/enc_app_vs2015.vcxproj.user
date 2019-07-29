@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommandArguments>--config C:\Users\Administrator\Desktop\005_PCL\002_software\HPM-3.3\cfg\encode_LDP.cfg -i C:\Users\Administrator\Desktop\005_PCL\002_software\HPM-3.3\seq\BasketballDrill_832x480_50.yuv -w 832 -h 480 -z 50 -f 9 -d 8 -q 60 -o Basketball_LD.bin -r Basketball_LD_rec.yuv</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerCommandArguments>--config C:\Users\Administrator\Desktop\005_PCL\002_software\HPM-3.3\cfg\encode_LDP.cfg -i C:\Users\Administrator\Desktop\005_PCL\002_software\HPM-3.3\seq\BasketballDrill_832x480_50.yuv -w 832 -h 480 -z 50 -f 9 -d 8 -q 60 -o Basketball_LD.bin -r Basketball_LD_rec.yuv</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+</Project>
