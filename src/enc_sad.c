@@ -54,7 +54,11 @@ static int sad_16b(int w, int h, void *src1, void *src2, int s_src1, int s_src2,
     }
     return (sad >> (bit_depth - 8));
 }
-
+//高64位置零，取低64位到s00,s01  \\4个16bit
+//从s01(16bit uchar or 8bit char) - s00
+//该指令返回128位参数的每个打包16位整数的绝对值
+//从16位到32位有符号转化
+//将a中的4个有符号或无符号32位整数添加到b中的4个有符号或无符号32位整数中
 #if SIMD_SAD
 #define SSE_SAD_16B_4PEL(src1, src2, s00, s01, sac0) \
     s00 = _mm_loadl_epi64((__m128i*)(src1)); \
@@ -63,7 +67,7 @@ static int sad_16b(int w, int h, void *src1, void *src2, int s_src1, int s_src2,
     s00 = _mm_abs_epi16(s00); \
     s00 = _mm_cvtepi16_epi32(s00); \
     \
-    sac0 = _mm_add_epi32(sac0, s00);
+    sac0 = _mm_add_epi32(sac0, s00); // s00实际上是当前sac
 
 #define SSE_SAD_16B_8PEL(src1, src2, s00, s01, sac0, sac1) \
     s00 = _mm_loadu_si128((__m128i*)(src1)); \
@@ -125,16 +129,16 @@ static int sad_16b_4x4_simd(int w, int h, void * src1, void * src2, int s_src1, 
     int sad;
     s16 * s1;
     s16 * s2;
-    __m128i s00, s01, sac0;
+    __m128i s00, s01, sac0;  //128bits整数
     s1  = (s16 *)src1;
     s2  = (s16 *)src2;
     sac0 = _mm_setzero_si128();
-    SSE_SAD_16B_4PEL(s1, s2, s00, s01, sac0);
+    SSE_SAD_16B_4PEL(s1, s2, s00, s01, sac0);  //返回s00-s01的SAD
     SSE_SAD_16B_4PEL(s1 + s_src1, s2 + s_src2, s00, s01, sac0);
     SSE_SAD_16B_4PEL(s1 + (s_src1*2), s2 + (s_src2*2), s00, s01, sac0);
     SSE_SAD_16B_4PEL(s1 + (s_src1*3), s2 + (s_src2*3), s00, s01, sac0);
-    sad  = _mm_extract_epi32(sac0, 0);
-    sad += _mm_extract_epi32(sac0, 1);
+    sad  = _mm_extract_epi32(sac0, 0);  //从一个 128 位参数提取 32 位值。
+    sad += _mm_extract_epi32(sac0, 1);  //0 1 2 3表示4种32位常数
     sad += _mm_extract_epi32(sac0, 2);
     sad += _mm_extract_epi32(sac0, 3);
     return (sad >> (bit_depth - 8));

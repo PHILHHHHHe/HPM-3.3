@@ -3025,7 +3025,7 @@ ERR:
 int main(int argc, const char **argv)
 {
     STATES              state = STATE_ENCODING;
-    unsigned char      *bs_buf = NULL;
+    unsigned char      *bs_buf = NULL;   //
     unsigned char      *bs_buf2 = NULL;
     FILE               *fp_inp = NULL;
     ENC                id;
@@ -3085,7 +3085,7 @@ int main(int argc, const char **argv)
     {
         /* reconstruction file - remove contents and close */
         FILE * fp;
-        fp = fopen(op_fname_rec, "wb");
+        fp = fopen(op_fname_rec, "wb"); //str.bin
         if(fp == NULL)
         {
             v0print("cannot open reconstruction file (%s)\n", op_fname_rec);
@@ -3094,7 +3094,7 @@ int main(int argc, const char **argv)
         fclose(fp);
     }
     /* open original file */
-    fp_inp = fopen(op_fname_inp, "rb");
+    fp_inp = fopen(op_fname_inp, "rb");  //yuv sequence
     if(fp_inp == NULL)
     {
         v0print("cannot open original file (%s)\n", op_fname_inp);
