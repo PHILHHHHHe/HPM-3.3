@@ -1722,7 +1722,7 @@ int enc_pic(ENC_CTX * ctx, COM_BITB * bitb, ENC_STAT * stat)
                 pic_header->ref_pic_list_sps_flag[1] = 0;
         }
     }
-
+//配置参数？
 #if LIBVC_ON
     if (ctx->info.sqh.library_picture_enable_flag && !ctx->rpm.libvc_data->is_libpic_processing && ctx->is_RLpic_flag)
     {
@@ -1792,7 +1792,7 @@ int enc_pic(ENC_CTX * ctx, COM_BITB * bitb, ENC_STAT * stat)
 #endif
     com_assert_rv(ret == COM_OK, ret);
 
-    /* initialize mode decision for frame encoding */
+    /* initialize mode decision for frame encoding */   //inter and intra init
     ret = enc_mode_init_frame(ctx);
     com_assert_rv(ret == COM_OK, ret);
 
@@ -1800,11 +1800,11 @@ int enc_pic(ENC_CTX * ctx, COM_BITB * bitb, ENC_STAT * stat)
     core->x_lcu = core->y_lcu = 0;
     core->x_pel = core->y_pel = 0;
     core->lcu_num = 0;
-    ctx->lcu_cnt = ctx->info.f_lcu;
+	ctx->lcu_cnt = ctx->info.f_lcu; //8
     /* Set chunk header */
     set_cnkh(ctx, &cnkh, COM_VER_1, COM_CT_PICTURE);
 
-    /* initialize entropy coder */
+    /* initialize entropy coder */ //初始化熵编码器
     enc_sbac_init(bs);
     com_sbac_ctx_init(&(GET_SBAC_ENC(bs)->ctx));
     com_sbac_ctx_init(&(core->s_curr_best[ctx->info.log2_max_cuwh - 2][ctx->info.log2_max_cuwh - 2].ctx));
@@ -1831,7 +1831,7 @@ int enc_pic(ENC_CTX * ctx, COM_BITB * bitb, ENC_STAT * stat)
     patch->left_pel = patch->x_pel;
     patch->up_pel = patch->y_pel;
     patch->right_pel = patch->x_pel + (*(patch->width_in_lcu + patch->x_pat) << ctx->info.log2_max_cuwh);
-    patch->down_pel = patch->y_pel + (*(patch->height_in_lcu + patch->y_pat) << ctx->info.log2_max_cuwh);
+    patch->down_pel = patch->y_pel + (*(patch->height_in_lcu + patch->y_pat) << ctx->info.log2_max_cuwh); //全是0
 #endif
     while(1)
     {
@@ -2122,8 +2122,8 @@ int enc_pic(ENC_CTX * ctx, COM_BITB * bitb, ENC_STAT * stat)
     /*SET the patch boundary*/
     patch->left_pel = patch->x_pel;
     patch->up_pel = patch->y_pel;
-    patch->right_pel = patch->x_pel + (*(patch->width_in_lcu + patch->x_pat) << ctx->info.log2_max_cuwh);
-    patch->down_pel = patch->y_pel + (*(patch->height_in_lcu + patch->y_pat) << ctx->info.log2_max_cuwh);
+	patch->right_pel = patch->x_pel + (*(patch->width_in_lcu + patch->x_pat) << ctx->info.log2_max_cuwh); //512
+    patch->down_pel = patch->y_pel + (*(patch->height_in_lcu + patch->y_pat) << ctx->info.log2_max_cuwh); //256
     patch_cur_index = -1;
 #endif
     /* Encode patch header */
@@ -2133,9 +2133,9 @@ int enc_pic(ENC_CTX * ctx, COM_BITB * bitb, ENC_STAT * stat)
     core->x_lcu = core->y_lcu = 0;
     core->x_pel = core->y_pel = 0;
     core->lcu_num = 0;
-    ctx->lcu_cnt = ctx->info.f_lcu;
-    for(i = 0; i < ctx->info.f_scu; i++)
-    {
+    ctx->lcu_cnt = ctx->info.f_lcu; //8
+    for(i = 0; i < ctx->info.f_scu; i++) //6240
+	{
         MCU_CLR_CODED_FLAG(ctx->map.map_scu[i]);
     }
     enc_sbac_init(bs);
@@ -2154,21 +2154,21 @@ int enc_pic(ENC_CTX * ctx, COM_BITB * bitb, ENC_STAT * stat)
         patch_cur_index = patch->idx;
 #endif
 
-        if (!ctx->info.shext.fixed_slice_qp_flag)
+        if (!ctx->info.shext.fixed_slice_qp_flag) //No entering
         {
             int dqp = *map_delta_qp++;
             enc_eco_lcu_delta_qp(bs, dqp, last_lcu_delta_qp);
             last_lcu_delta_qp = dqp;
         }
 
-        if (ctx->info.sqh.sample_adaptive_offset_enable_flag)
-        {
+        if (ctx->info.sqh.sample_adaptive_offset_enable_flag) //8
+		{
             int lcu_pos = core->x_lcu + core->y_lcu * ctx->info.pic_width_in_lcu;
             writeParaSAO_one_LCU(ctx, core->y_pel, core->x_pel, ctx->saoBlkParams[lcu_pos]);
         }
 
-        if (ctx->info.sqh.adaptive_leveling_filter_enable_flag)
-        {
+        if (ctx->info.sqh.adaptive_leveling_filter_enable_flag) //8
+		{
             int lcu_pos = core->x_lcu + core->y_lcu * ctx->info.pic_width_in_lcu;
             for (int compIdx = Y_C; compIdx < N_C; compIdx++)
             {
