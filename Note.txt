@@ -1,0 +1,33 @@
+ENC_CTX *ctx:     编码图片的context
+ENC_CORE          用于经常使用的编码过程的信息
+COM_BITB:          位
+ENC_STAT：        标识状态，比如qp值，已encode的frame值
+
+enc_pintra.c： 初始化intra para
+enc_pinter.c:    初始化inter para
+
+
+//名词解释
+rpl： reference picture library
+sao:   样值偏移补偿
+
+----------------------------
+app_encode.c ---- > enc_encode()          //3363
+
+//enc.c
+enc.c ------->  enc_mode_analyze_lcu   //1930  重点计算
+enc.c -------> enc_pic()                           //2578   编码过程
+
+//enc_mode.c
+enc_mode.c ------> mode_coding_unit //3162 
+enc_mode.c ------> analyze_intra_cu    //1542
+
+enc_mode.c ------> pinter_residue_rdo_chroma //1483
+
+//enc_pintra.c 
+enc_pintra.c ----> pintra_residue_rdo //572
+enc_pintra.c ----> com_ipred_uv  //20
+
+
+
+----------------------------
