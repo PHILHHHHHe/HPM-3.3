@@ -1,15 +1,19 @@
-ENC_CTX *ctx:     编码图片的context
+ENC_CTX *ctx:     编码图片的context(包括下面很多)
 ENC_CORE          用于经常使用的编码过程的信息
+COM_BSW：       bitstream地址buffer
 COM_BITB:          位
 ENC_STAT：        标识状态，比如qp值，已encode的frame值
-
-enc_pintra.c： 初始化intra para
-enc_pinter.c:    初始化inter para
+COM_SQH：      序列头
+PATCH_INFO：  小块各种坐标、偏移等信息。
 
 
 //名词解释
 rpl： reference picture library
 sao:   样值偏移补偿
+NALU：
+VCL： 视频编码层
+NAL：网络提取层
+sqh:   序列头
 
 ----------------------------
 app_encode.c ---- > enc_encode()          //3363
@@ -28,6 +32,14 @@ enc_mode.c ------> pinter_residue_rdo_chroma //1483
 enc_pintra.c ----> pintra_residue_rdo //572
 enc_pintra.c ----> com_ipred_uv  //20
 
-
+//enc_pintra.c
+-----> com_ipred   //140  caculate intra prediction
 
 ----------------------------
+参数
+patch->right_pel：512       patch->width_in_lcu = 4
+patch->down_pel：256      patch->height_in_lcu = 2  
+ctx->info.log2_max_cuwh： 7
+cu_width：  128-->4
+cu_height:    7--->2
+ctx->info.pic_width/height:  输入视频宽高

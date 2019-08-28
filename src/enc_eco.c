@@ -714,7 +714,7 @@ static void sbac_put_byte (u8 writing_byte, ENC_SBAC *sbac, COM_BSW *bs)
     if(sbac->is_pending_byte)
     {
         if (sbac->is_bitcount)
-            com_bsw_write_est(sbac, 8);
+            com_bsw_write_est(sbac, 8); //寫進去的码流count
         else
             com_bsw_write(bs, sbac->pending_byte, 8);
     }
@@ -724,15 +724,15 @@ static void sbac_put_byte (u8 writing_byte, ENC_SBAC *sbac, COM_BSW *bs)
 
 static void sbac_carry_propagate (ENC_SBAC *sbac, COM_BSW *bs)
 {
-    u32 leadByte = (sbac->code) >> (24 - sbac->left_bits);
-    sbac->left_bits += 8;
-    (sbac->code) &= (0xffffffffu >> sbac->left_bits);
-    if(leadByte < 0xFF)
+	u32 leadByte = (sbac->code) >> (24 - sbac->left_bits); //好像是恢复到原始
+    sbac->left_bits += 8; 
+    (sbac->code) &= (0xffffffffu >> sbac->left_bits); //此时code存储除了高11位的低21位？
+    if(leadByte < 0xFF) //小于255
     {
         while(sbac->stacked_ff != 0)
         {
             sbac_put_byte(0xFF, sbac, bs);
-            sbac->stacked_ff--;
+			sbac->stacked_ff--;
         }
         sbac_put_byte((u8)leadByte, sbac, bs);
     }
@@ -843,30 +843,30 @@ void enc_sbac_encode_bin(u32 bin, ENC_SBAC *sbac, SBAC_CTX_MODEL *model, COM_BSW
 #if TRACE_BIN
     SBAC_CTX_MODEL prev_model = *model;
 #endif
-    u16 prob_lps = ((*model) & PROB_MASK) >> 1;
-    u16 cmps = (*model) & 1;
-    u32 rLPS = prob_lps >> LG_PMPS_SHIFTNO;
-    u32 rMPS = sbac->range - rLPS;
-    int s_flag = rMPS < QUAR_HALF_PROB;
-    rMPS |= 0x100;
+	u16 prob_lps = ((*model) & PROB_MASK) >> 1;  //printf("prob:%d\n", prob_lps); printf("model:%d\n", *model); printf("a:%d\n", PROB_MASK);
+    u16 cmps = (*model) & 1; //printf("cmps:%d\n", cmps);
+    u32 rLPS = prob_lps >> LG_PMPS_SHIFTNO; //printf("rlps:%d\n", rLPS);
+    u32 rMPS = sbac->range - rLPS;// printf("rMPS:%d\n", rMPS); printf("range:%d\n", sbac->range);
+	int s_flag = rMPS < QUAR_HALF_PROB;  //< 256?
+	rMPS |= 0x100; //printf("rMPS |0x100:%d\n", rMPS); //printf("bin:%d\n", bin);
     assert(sbac->range >= rLPS); //! this maybe triggered, so it can be removed
     if (bin != cmps)
     {
-        rLPS = (sbac->range << s_flag) - rMPS;
-        int shift = ace_get_shift(rLPS);
-        sbac->range = rLPS << shift;
+		rLPS = (sbac->range << s_flag) - rMPS; //printf("rrLPS:%d\n", rLPS);//若rMPS左移位了 range也移位 重新计算rLPS
+		int shift = ace_get_shift(rLPS); //返回最高位1的index
+		sbac->range = rLPS << shift; //重新归一化range
         sbac->code = ((sbac->code << s_flag) + rMPS) << shift;
-        sbac->left_bits -= (shift + s_flag);
+        sbac->left_bits -= (shift + s_flag); //23bit 减去重新移位的数据
         if (sbac->left_bits < 12)
         {
-            sbac_carry_propagate(sbac, bs);
+            sbac_carry_propagate(sbac, bs); //此时left_bits=11.
         }
-        *model = tab_cycno_lgpmps_mps[(*model) | (1 << 13)];
+		*model = tab_cycno_lgpmps_mps[(*model) | (1 << 13)];
     }
     else //! MPS
     {
         if (s_flag)
-        {
+		{
             sbac->code <<= 1;
             if (--sbac->left_bits < 12)
             {
@@ -1253,7 +1253,7 @@ void encode_skip_flag(COM_BSW * bs, ENC_SBAC *sbac, int flag, ENC_CTX * ctx)
     int scun[2];
     int ctx_inc = 0;
     scun[0] = mod_info_curr->scup - ctx->info.pic_width_in_scu;
-    scun[1] = mod_info_curr->scup - 1;
+	scun[1] = mod_info_curr->scup - 1; 
 
     if (mod_info_curr->y_scu > 0)
         avail[0] = MCU_GET_CODED_FLAG(map_scu[scun[0]]); // up
@@ -1926,7 +1926,7 @@ int encode_pred_mode(COM_BSW * bs, u8 pred_mode, ENC_CTX * ctx)
     u8  avail[2] = { 0, 0 };
     int scun[2];
     int ctx_inc = 0;
-    scun[0] = mod_info_curr->scup - ctx->info.pic_width_in_scu;
+	scun[0] = mod_info_curr->scup - ctx->info.pic_width_in_scu; 
     scun[1] = mod_info_curr->scup - 1;
 
     if (mod_info_curr->y_scu > 0)

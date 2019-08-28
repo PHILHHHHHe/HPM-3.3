@@ -45,7 +45,7 @@ int g_aiTscpmDivTable64[64] =
 #endif
 
 #if FS_SAME_SIZE_PER_X_CTU
-const int tbl_target_size_list[27][2] =
+const int tbl_target_size_list[27][2] =	
 {
     {  4,   4 },
     {  4,   8 },

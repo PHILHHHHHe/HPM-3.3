@@ -2889,7 +2889,7 @@ int encode_libpics(ENC_PARAM param_in, LibVCData* libvc_data)
         }
         /* encoding */
         clk_beg_lib = com_clk_get();
-        ret = enc_encode(id_lib, &bitb_lib, &stat_lib);
+        ret = enc_encode(id_lib, &bitb_lib, &stat_lib); //void* 
         num_encoded_frames += ret == COM_OK;
         if (COM_FAILED(ret))
         {

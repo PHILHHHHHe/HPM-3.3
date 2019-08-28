@@ -96,7 +96,7 @@ extern "C"
 #define WRITE_MD5_IN_USER_DATA             1 // write per-frame MD5 into user_data after picture header
 #define REPEAT_SEQ_HEADER                  1 // add sequence header before each I frame
 
-#define HLS_RPL                            1
+#define HLS_RPL                            1  //流媒体协议
 #if HLS_RPL
 #define DOI_CYCLE_LENGTH                 256 // the length of the DOI cycle.
 #endif

@@ -81,9 +81,9 @@ int com_bsw_write(COM_BSW * bs, u32 val, int len) /* len(1 ~ 32) */
 {
     int leftbits;
     com_assert(bs);
-    leftbits = bs->leftbits;
-    val <<= (32 - len);
-    bs->code |= (val >> (32 - leftbits));
+	leftbits = bs->leftbits;//32--8--8
+    val <<= (32 - len);  //左移(32-8)  高8位存储？
+    bs->code |= (val >> (32 - leftbits));  //bs-code存储高8位
     if(len < leftbits)
     {
         bs->leftbits -= len;
@@ -92,15 +92,15 @@ int com_bsw_write(COM_BSW * bs, u32 val, int len) /* len(1 ~ 32) */
     {
         com_assert_rv(bs->cur + 4 <= bs->end, -1);
         bs->leftbits = 0;
-        bs->fn_flush(bs);
+        bs->fn_flush(bs);  //刷新缓冲区并立即写入文件同时清空缓冲区。
 #if defined(X86F)
         /* on X86 machine, shift operation works properly when the value of the
            right operand is less than the number of bits of the left operand. */
         bs->code = (leftbits < 32 ? val << leftbits : 0);
 #else
-        bs->code = (val << leftbits);
+        bs->code = (val << leftbits); //左移8位
 #endif
-        bs->leftbits = 32 - (len - leftbits);
+		bs->leftbits = 32 - (len - leftbits); //恢复到32
     }
     return 0;
 }

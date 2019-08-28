@@ -81,15 +81,16 @@ static double pintra_residue_rdo(ENC_CTX *ctx, ENC_CORE *core, pel *org_luma, pe
     int num_nz_temp[MAX_NUM_TB][N_C];
 
     cu_width = 1 << cu_width_log2;
-    cu_height = 1 << cu_height_log2;
+	cu_height = 1 << cu_height_log2; //w和h最低是4， w和h可以最多是4倍关系 //没有128
+
     if (!bChroma)
     {
         int pb_part_size = mod_info_curr->pb_part;
         int num_tb_in_pb = get_part_num_tb_in_pb(pb_part_size, pb_idx);
         int pb_w = mod_info_curr->pb_info.sub_w[pb_idx];
         int pb_h = mod_info_curr->pb_info.sub_h[pb_idx];
-        int pb_x = mod_info_curr->pb_info.sub_x[pb_idx];
-        int pb_y = mod_info_curr->pb_info.sub_y[pb_idx];
+        int pb_x = mod_info_curr->pb_info.sub_x[pb_idx]; //
+		int pb_y = mod_info_curr->pb_info.sub_y[pb_idx]; //printf("id:%d,x:%d,y:%d,w:%d,h:%d\n", pb_idx,pb_x, pb_y, pb_w, pb_h);
         int tb_w, tb_h, tb_x, tb_y, tb_scup, tb_x_scu, tb_y_scu, coef_offset_tb;
         pel* pred_tb;
         cu_plane_nz_cln(mod_info_curr->num_nz, Y_C);
@@ -175,10 +176,10 @@ static double pintra_residue_rdo(ENC_CTX *ctx, ENC_CORE *core, pel *org_luma, pe
         else
             SBAC_LOAD(core->s_temp_run, core->s_temp_prev_comp_best);
         //enc_sbac_bit_reset(&core->s_temp_run);
-        bit_cnt = enc_get_bit_number(&core->s_temp_run);
+		bit_cnt = enc_get_bit_number(&core->s_temp_run);
         enc_bit_est_pb_intra_luma(ctx, core, ctx->info.pic_header.slice_type, mod_info_curr->coef, pb_idx);
         bit_cnt = enc_get_bit_number(&core->s_temp_run) - bit_cnt;
-        cost += RATE_TO_COST_LAMBDA(ctx->lambda[0], bit_cnt);
+		cost += RATE_TO_COST_LAMBDA(ctx->lambda[0], bit_cnt); // r = 375.98
     }
     else
     {
@@ -418,7 +419,7 @@ double analyze_intra_cu(ENC_CTX *ctx, ENC_CORE *core)
     {
         int allowed_part_size[7] = { SIZE_2Nx2N };
         int num_allowed_part_size = 1;
-        int dt_allow = ctx->info.sqh.dt_intra_enable_flag ? com_dt_allow(mod_info_curr->cu_width, mod_info_curr->cu_height, MODE_INTRA, ctx->info.sqh.max_dt_size) : 0;
+        int dt_allow = ctx->info.sqh.dt_intra_enable_flag ? com_dt_allow(mod_info_curr->cu_width, mod_info_curr->cu_height, MODE_INTRA, ctx->info.sqh.max_dt_size) : 0; //0~3
 #if DT_INTRA_BOUNDARY_FILTER_OFF
         if (core->mod_info_curr.ipf_flag)
             dt_allow = 0;
@@ -484,16 +485,16 @@ double analyze_intra_cu(ENC_CTX *ctx, ENC_CORE *core)
             // pb-based intra mode candidate selection
             for (pb_part_idx = 0; pb_part_idx < mod_info_curr->pb_info.num_sub_part; pb_part_idx++)
             {
-                int pb_x = mod_info_curr->pb_info.sub_x[pb_part_idx];
-                int pb_y = mod_info_curr->pb_info.sub_y[pb_part_idx];
-                int pb_w = mod_info_curr->pb_info.sub_w[pb_part_idx];
-                int pb_h = mod_info_curr->pb_info.sub_h[pb_part_idx];
+                int pb_x = mod_info_curr->pb_info.sub_x[pb_part_idx]; //0~60
+                int pb_y = mod_info_curr->pb_info.sub_y[pb_part_idx]; //0~60
+                int pb_w = mod_info_curr->pb_info.sub_w[pb_part_idx]; //4~64
+				int pb_h = mod_info_curr->pb_info.sub_h[pb_part_idx]; //4·64
                 int pb_scup = mod_info_curr->pb_info.sub_scup[pb_part_idx];
-                int pb_x_scu = PEL2SCU(pb_x);
-                int pb_y_scu = PEL2SCU(pb_y);
-                int pb_coef_offset = get_coef_offset_tb(mod_info_curr->x_pos, mod_info_curr->y_pos, pb_x, pb_y, cu_width, cu_height, tb_part_size);
-                int tb_idx_offset = get_tb_idx_offset(pb_part_size, pb_part_idx);
-                int num_tb_in_pb = get_part_num_tb_in_pb(pb_part_size, pb_part_idx);
+                int pb_x_scu = PEL2SCU(pb_x); // 0~30
+				int pb_y_scu = PEL2SCU(pb_y); // 0~30
+                int pb_coef_offset = get_coef_offset_tb(mod_info_curr->x_pos, mod_info_curr->y_pos, pb_x, pb_y, cu_width, cu_height, tb_part_size); //0---+32---384
+                int tb_idx_offset = get_tb_idx_offset(pb_part_size, pb_part_idx);//0~3
+				int num_tb_in_pb = get_part_num_tb_in_pb(pb_part_size, pb_part_idx); //printf("tb:%d,in:%d\n", tb_idx_offset, num_tb_in_pb);//1~3
 #if DT_INTRA_BUGFIX
                 int skip_ipd = 0;
                 if (((pb_part_size == SIZE_2NxnU || pb_part_size == SIZE_nLx2N) && pb_part_idx == 1) ||
@@ -568,7 +569,7 @@ double analyze_intra_cu(ENC_CTX *ctx, ENC_CORE *core)
                     i = ipred_list[j];
                     mod_info_curr->ipm[pb_part_idx][0] = (s8)i;
                     mod_info_curr->ipm[pb_part_idx][1] = IPD_INVALID;
-                    cost_pb_temp = pintra_residue_rdo(ctx, core, org, NULL, NULL, s_org, s_org_c, cu_width_log2, cu_height_log2, &dist_t, 0, pb_part_idx, x, y);
+					cost_pb_temp = pintra_residue_rdo(ctx, core, org, NULL, NULL, s_org, s_org_c, cu_width_log2, cu_height_log2, &dist_t, 0, pb_part_idx, x, y);
 #if PRINT_CU_LEVEL_2
                     printf("\nluma pred mode %2d cost_pb_temp %10.1f", i, cost_pb_temp);
                     double val = 2815.9;

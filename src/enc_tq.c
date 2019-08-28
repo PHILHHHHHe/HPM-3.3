@@ -977,10 +977,10 @@ int enc_rdoq_run_length_cc(int qp, double d_lambda, int is_intra, s16 *src_coef,
     {
         return num_nz_coef;
     }
-    if (!is_intra && ch_type == Y_C)
+    if (!is_intra && ch_type == Y_C) // no entry
     {
         d64_best_cost = d64_block_uncoded_cost + GET_I_COST(rdoq_est_ctp_zero_flag[1], lambda);
-        d64_base_cost = d64_block_uncoded_cost + GET_I_COST(rdoq_est_ctp_zero_flag[0], lambda);
+		d64_base_cost = d64_block_uncoded_cost + GET_I_COST(rdoq_est_ctp_zero_flag[0], lambda);
     }
     else
     {
@@ -1050,7 +1050,7 @@ int enc_quant_nnz(ENC_CTX *ctx, int qp, double lambda, int is_intra, s16 * coef,
 {
     int bit_depth = ctx->info.bit_depth_internal;
     int num_nz_coef = 0;
-    int scale  = quant_scale[qp];
+	int scale = quant_scale[qp];
     int width = 1 << cu_width_log2;
     int height = 1 << cu_height_log2;
 
@@ -1075,7 +1075,7 @@ int enc_quant_nnz(ENC_CTX *ctx, int qp, double lambda, int is_intra, s16 * coef,
 #if USE_RDOQ
     if(!ctx->info.pic_header.pic_wq_enable)
     {
-        s64 lev;
+		s64 lev;
         s64 offset;
         int i;
         int shift;
@@ -1086,7 +1086,7 @@ int enc_quant_nnz(ENC_CTX *ctx, int qp, double lambda, int is_intra, s16 * coef,
         s64 zero_coeff_threshold;
         BOOL is_coded = 0;
 
-        tr_shift = get_transform_shift(bit_depth, log2_size - ns_shift);
+		tr_shift = get_transform_shift(bit_depth, log2_size - ns_shift); //1~12
         shift = QUANT_SHIFT + tr_shift;
 #define FAST_RDOQ_INTRA_RND_OFST  201 //171
 #define FAST_RDOQ_INTER_RND_OFST  153 //85
@@ -1094,7 +1094,7 @@ int enc_quant_nnz(ENC_CTX *ctx, int qp, double lambda, int is_intra, s16 * coef,
         zero_coeff_threshold = ((s64)1 << (s64)shift) - offset;
         for(i = 0; i < (1 << (cu_width_log2 + cu_height_log2)); i++)
         {
-            lev = (s64)COM_ABS(coef[i]) * (s64)scale * ns_scale;
+			lev = (s64)COM_ABS(coef[i]) * (s64)scale * ns_scale;
             if(lev >= zero_coeff_threshold)
             {
                 is_coded = 1;
@@ -1107,8 +1107,8 @@ int enc_quant_nnz(ENC_CTX *ctx, int qp, double lambda, int is_intra, s16 * coef,
             return num_nz_coef;
         }
 
-        if((cu_height_log2 > MAX_TR_LOG2) || (cu_width_log2 > MAX_TR_LOG2))
-        {
+        if((cu_height_log2 > MAX_TR_LOG2) || (cu_width_log2 > MAX_TR_LOG2))  // no entry
+		{
             s16 t[MAX_TR_DIM];
             int m, n;
             int nnz_tmp = 0;
@@ -1123,7 +1123,7 @@ int enc_quant_nnz(ENC_CTX *ctx, int qp, double lambda, int is_intra, s16 * coef,
                 for(m = 0; m < log_w_loop2; m++)
                 {
                     int l;
-                    s16 * coef_temp = &coef[n * MAX_TR_SIZE * stride + m * MAX_TR_SIZE];
+					s16 * coef_temp = &coef[n * MAX_TR_SIZE * stride + m * MAX_TR_SIZE];
                     //copy to temp
                     for(l = 0; l < (1 << tu_height_log2); l++)
                     {
@@ -1143,7 +1143,7 @@ int enc_quant_nnz(ENC_CTX *ctx, int qp, double lambda, int is_intra, s16 * coef,
             }
         }
         else
-        {
+		{
             num_nz_coef = enc_rdoq_run_length_cc(qp, lambda, is_intra, coef, coef, cu_width_log2, cu_height_log2, ch_type, bit_depth);
         }
     }
@@ -1188,8 +1188,8 @@ int enc_quant_nnz(ENC_CTX *ctx, int qp, double lambda, int is_intra, s16 * coef,
             for (j = 0; j < w; j++)
             {
                 int weight = wq[j >> idx_shift];
-                int sign = COM_SIGN_GET(coef[j]);
-                int lev = (s16)(((s64)COM_ABS(coef[j]) * (s64)scale * ns_scale * 64 / weight + offset) >> shift);
+				int sign = COM_SIGN_GET(coef[j]);;
+				int lev = (s16)(((s64)COM_ABS(coef[j]) * (s64)scale * ns_scale * 64 / weight + offset) >> shift); 
                 coef[j] = (s16)COM_SIGN_SET(lev, sign);
                 num_nz_coef += !!(coef[j]);
             }

@@ -923,7 +923,8 @@ static s64 ssd_16b(int w, int h, void *src1, void *src2, int s_src1, int s_src2,
     }
     return ssd;
 }
-
+// mullo  乘法算子
+// srli 偏移
 #if SIMD_SSD
 #define SSE_SSD_16B_4PEL(src1, src2, shift, s00, s01, s00a) \
     s00 = _mm_loadl_epi64((__m128i*)(src1)); \
@@ -984,8 +985,8 @@ static s64 ssd_16b_sse_4x4(int w, int h, void * src1, void * src2, int s_src1, i
     SSE_SSD_16B_4PEL(s1 + s_src1, s2 + s_src2, shift, s00, s01, s00a);
     SSE_SSD_16B_4PEL(s1 + s_src1*2, s2 + s_src2*2, shift, s00, s01, s00a);
     SSE_SSD_16B_4PEL(s1 + s_src1*3, s2 + s_src2*3, shift, s00, s01, s00a);
-    ssd = _mm_extract_epi32(s00a, 0);
-    ssd += _mm_extract_epi32(s00a, 1);
+    ssd = _mm_extract_epi32(s00a, 0); //从一个128位数中提取32位的值
+    ssd += _mm_extract_epi32(s00a, 1);//0 1 2 3表示4种32位数
     ssd += _mm_extract_epi32(s00a, 2);
     ssd += _mm_extract_epi32(s00a, 3);
     return ssd;

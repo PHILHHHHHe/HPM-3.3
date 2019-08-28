@@ -1668,7 +1668,7 @@ int enc_pic_finish(ENC_CTX *ctx, COM_BITB *bitb, ENC_STAT *stat)
 int enc_pic(ENC_CTX * ctx, COM_BITB * bitb, ENC_STAT * stat)
 {
     ENC_CORE * core;
-    COM_BSW   * bs;
+    COM_BSW   * bs; //bitstream buffer address
     COM_PIC_HEADER    * pic_header;
     COM_SQH * sqh;
     COM_SH_EXT * shext;
@@ -1711,6 +1711,7 @@ int enc_pic(ENC_CTX * ctx, COM_BITB * bitb, ENC_STAT * stat)
     ctx->wq[0] = pic_header->wq_4x4_matrix;
     ctx->wq[1] = pic_header->wq_8x8_matrix;
 
+	/*除了I帧都Enter*/
     if (pic_header->slice_type != SLICE_I && pic_header->poc != 0) //TODO: perhaps change this condition to say that if this slice is not a slice in IDR picture
     {
         ret = create_explicit_rpl(&ctx->rpm, pic_header);
@@ -1830,8 +1831,11 @@ int enc_pic(ENC_CTX * ctx, COM_BITB * bitb, ENC_STAT * stat)
     patch_cur_lcu_y = 0;
     patch->left_pel = patch->x_pel;
     patch->up_pel = patch->y_pel;
-    patch->right_pel = patch->x_pel + (*(patch->width_in_lcu + patch->x_pat) << ctx->info.log2_max_cuwh);
-    patch->down_pel = patch->y_pel + (*(patch->height_in_lcu + patch->y_pat) << ctx->info.log2_max_cuwh); //全是0
+    patch->right_pel = patch->x_pel + (*(patch->width_in_lcu + patch->x_pat) << ctx->info.log2_max_cuwh); //512, wid=4,
+    patch->down_pel = patch->y_pel + (*(patch->height_in_lcu + patch->y_pat) << ctx->info.log2_max_cuwh); //256, heig=2,
+	//printf("%d,%d\n", patch->right_pel, patch->down_pel);
+	//printf("log:%d,%d\n", *patch->width_in_lcu, ctx->info.log2_max_cuwh);
+	//	printf("log:%d,%d\n", *patch->height_in_lcu, ctx->info.log2_max_cuwh);
 #endif
     while(1)
     {
@@ -1925,6 +1929,7 @@ int enc_pic(ENC_CTX * ctx, COM_BITB * bitb, ENC_STAT * stat)
         printf("\nCtu_idx %5d\tSplit_comb %d %d %d %d %d %d    ", ctx->slice_type == SLICE_I ? ctx->ctu_idx_in_seq_I_slice_ctu : ctx->ctu_idx_in_seq_B_slice_ctu,
                ctx->split_combination[0], ctx->split_combination[1], ctx->split_combination[2], ctx->split_combination[3], ctx->split_combination[4], ctx->split_combination[5]);
 #endif
+		/*递归*/
         ret = enc_mode_analyze_lcu(ctx, core);
 #if FIXED_SPLIT
         if ((core->x_lcu + 1) * ctx->info.max_cuwh <= ctx->info.pic_width && (core->y_lcu + 1) * ctx->info.max_cuwh <= ctx->info.pic_height)
@@ -2553,7 +2558,7 @@ static int check_more_frames(ENC_CTX * ctx)
 int enc_encode(ENC id, COM_BITB * bitb, ENC_STAT * stat)
 {
     ENC_CTX * ctx = (ENC_CTX *)id;
-    int            ret;
+    int            ret;  //status
     int            gop_size, pic_cnt;
     /* bumping - check whether input pictures are remaining or not in pico_buf[] */
     if(COM_OK_NO_MORE_FRM == check_more_frames(ctx))

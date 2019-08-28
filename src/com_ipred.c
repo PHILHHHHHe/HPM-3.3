@@ -265,11 +265,11 @@ void ipred_plane(pel *src_le, pel *src_up, pel *dst, int w, int h)
     pel *rsrc;
     int  coef_h = 0, coef_v = 0;
     int  a, b, c, x, y;
-    int  w2 = w >> 1;
-    int  h2 = h >> 1;
+    int  w2 = w >> 1; 
+	int  h2 = h >> 1; 
     int  ib_mult[5]  = { 13, 17, 5, 11, 23 };
     int  ib_shift[5] = { 7, 10, 11, 15, 19 };
-    int  idx_w = com_tbl_log2[w] - 2;
+	int  idx_w = com_tbl_log2[w] - 2; 
     int  idx_h = com_tbl_log2[h] - 2;
     int  im_h, is_h, im_v, is_v, temp, temp2;
     im_h = ib_mult[idx_w];
@@ -300,7 +300,7 @@ void ipred_plane(pel *src_le, pel *src_up, pel *dst, int w, int h)
         }
         temp += c;
         dst += w;
-    }
+	}
 }
 
 void ipred_bi(pel *src_le, pel *src_up, pel *dst, int w, int h)
@@ -948,16 +948,16 @@ void com_ipred(pel *src_le, pel *src_up, pel *dst, int ipm, int w, int h, int bi
     switch(ipm)
     {
     case IPD_VER:
-        ipred_vert(src_up, dst, w, h);
+        ipred_vert(src_up, dst, w, h);  //mode12 取上面几个元素 一直垂直下来
         break;
     case IPD_HOR:
-        ipred_hor(src_le, dst, w, h);
+        ipred_hor(src_le, dst, w, h);  //mode 24 取左面几个元素 一直垂直下来
         break;
     case IPD_DC:
-        ipred_dc(src_le, src_up, dst, w, h, bit_depth, avail_cu);
+        ipred_dc(src_le, src_up, dst, w, h, bit_depth, avail_cu);// mode 0
         break;
     case IPD_PLN:
-        ipred_plane(src_le, src_up, dst, w, h);
+        ipred_plane(src_le, src_up, dst, w, h); //mode1 
         break;
     case IPD_BI:
         ipred_bi(src_le, src_up, dst, w, h);

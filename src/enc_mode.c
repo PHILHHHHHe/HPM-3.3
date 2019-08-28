@@ -136,7 +136,7 @@ void enc_bit_est_pb_intra_luma(ENC_CTX *ctx, ENC_CORE *core, s32 slice_type, s16
         {
             if (ctx->cons_pred_mode != ONLY_INTRA)
             {
-                encode_skip_flag(&core->bs_temp, sbac, 0, ctx);
+				encode_skip_flag(&core->bs_temp, sbac, 0, ctx);
                 encode_direct_flag(&core->bs_temp, 0, ctx);
             }
 
@@ -1521,7 +1521,7 @@ static double mode_coding_unit(ENC_CTX *ctx, ENC_CORE *core, int x, int y, int c
     
     /* intra *************************************************************/
     if ((ctx->slice_type == SLICE_I || is_cu_nz(core->mod_info_best.num_nz) || cost_best == MAX_COST) && cons_pred_mode != ONLY_INTER)
-    {
+	{
         if (cu_width <= 64 && cu_height <= 64)
         {
             assert(core->cost_best == cost_best);
@@ -1535,10 +1535,10 @@ static double mode_coding_unit(ENC_CTX *ctx, ENC_CORE *core, int x, int y, int c
             {
                 core->inter_satd = COM_UINT32_MAX;
             }
-
-            for (ipf_flag = 0; ipf_flag < ipf_passes_num; ++ipf_flag)
+			
+            for (ipf_flag = 0; ipf_flag < ipf_passes_num; ++ipf_flag)//num:2 or 1
             {
-                core->mod_info_curr.ipf_flag = ipf_flag;
+				core->mod_info_curr.ipf_flag = ipf_flag;
                 cost = analyze_intra_cu(ctx, core);
 #if PRINT_CU
 #if FIXED_SPLIT
@@ -3044,7 +3044,7 @@ static double mode_coding_tree(ENC_CTX *ctx, ENC_CORE *core, int x0, int y0, int
                                , const int parent_split, int qt_depth, int bet_depth, u8 cons_pred_mode, u8 tree_status)
 {
 
-    int cu_width = 1 << cu_width_log2;
+	int cu_width = 1 << cu_width_log2; //128-->4   //7--->2
     int cu_height = 1 << cu_height_log2;
     s8 best_split_mode = NO_SPLIT;
     u8 best_cons_pred_mode = NO_MODE_CONS;
@@ -3052,7 +3052,8 @@ static double mode_coding_tree(ENC_CTX *ctx, ENC_CORE *core, int x0, int y0, int
     double cost_best = MAX_COST;
     double cost_temp = MAX_COST;
     ENC_SBAC s_temp_depth = { 0 };
-    int boundary = !(x0 + cu_width <= ctx->info.pic_width && y0 + cu_height <= ctx->info.pic_height);
+	//x0:0---+4---60  y0---+4---60
+	int boundary = !(x0 + cu_width <= ctx->info.pic_width && y0 + cu_height <= ctx->info.pic_height); //almost£º0 little£º1
     int boundary_r = 0, boundary_b = 0;
     int split_allow[SPLIT_QUAD + 1]; //allowed split by normative and non-normative selection
     SPLIT_MODE split_mode = NO_SPLIT;
@@ -3084,7 +3085,7 @@ static double mode_coding_tree(ENC_CTX *ctx, ENC_CORE *core, int x0, int y0, int
     {
         /***************************** Step 1: decide normatively allowed split modes ********************************/
         boundary_b = boundary && (y0 + cu_height > ctx->info.pic_height) && !(x0 + cu_width > ctx->info.pic_width);
-        boundary_r = boundary && (x0 + cu_width > ctx->info.pic_width) && !(y0 + cu_height > ctx->info.pic_height);
+		boundary_r = boundary && (x0 + cu_width > ctx->info.pic_width) && !(y0 + cu_height > ctx->info.pic_height); //b, r=0
         com_check_split_mode(&ctx->info.sqh, split_allow, cu_width_log2, cu_height_log2, boundary, boundary_b, boundary_r, ctx->info.log2_max_cuwh, ctx->info.pic_header.temporal_id
                              , parent_split, qt_depth, bet_depth, ctx->info.pic_header.slice_type);
         for (int i = 1; i < MAX_SPLIT_NUM; i++)
@@ -3580,7 +3581,7 @@ int enc_mode_analyze_lcu(ENC_CTX *ctx, ENC_CORE *core)
 
     /* decide mode */
     mode_coding_tree(ctx, core, core->x_pel, core->y_pel, 0, ctx->info.log2_max_cuwh, ctx->info.log2_max_cuwh, 0
-                     , NO_SPLIT, 0, 0, NO_MODE_CONS, TREE_LC);
+                     , NO_SPLIT, 0, 0, NO_MODE_CONS, TREE_LC); //wh: 7--->2
     update_to_ctx_map(ctx, core);
     copy_cu_data(&ctx->map_cu_data[core->lcu_num], &core->cu_data_best[ctx->info.log2_max_cuwh - 2][ctx->info.log2_max_cuwh - 2],
                  0, 0, ctx->info.log2_max_cuwh, ctx->info.log2_max_cuwh, ctx->info.log2_max_cuwh, 0, TREE_LC);

@@ -763,7 +763,7 @@ static void com_dquant(int qp, s16 *coef, s16* coef_out, u8* wq_matrix[2], int l
     int refix = (log2_w + log2_h) & 1;
     int scale = com_tbl_dq_scale[qp];
     int shift = com_tbl_dq_shift[qp] - get_transform_shift(bit_depth, log2_size) + 1; // +1 is used to compensate for the mismatching of shifts in quantization and inverse quantization
-    int offset = (shift == 0) ? 0 : (1 << (shift - 1));
+	int offset = (shift == 0) ? 0 : (1 << (shift - 1)); //0~---+16----64
     u8* wq;
 
     if ((log2_w > MAX_TR_LOG2) || (log2_h > MAX_TR_LOG2))
@@ -781,7 +781,7 @@ static void com_dquant(int qp, s16 *coef, s16* coef_out, u8* wq_matrix[2], int l
     else
     {
         wq = wq_matrix[1];
-        idx_shift = max(log2_w, log2_h) - 3;
+		idx_shift = max(log2_w, log2_h) - 3; //0~2
         idx_step = 1 << idx_shift;
         wq_width = 8;
     }
@@ -790,15 +790,15 @@ static void com_dquant(int qp, s16 *coef, s16* coef_out, u8* wq_matrix[2], int l
     {
         for (j = 0; j < w; j++)
         {
-            int weight = ((i | j) & 0xE0) ? 0 : wq[j >> idx_shift];
+			int weight = ((i | j) & 0xE0) ? 0 : wq[j >> idx_shift]; //0 or 64
 #if FIX67_DEQUANT
-            int lev = (((((coef[j] * weight) >> 2) * (s64)scale) >> 4) + offset) >> shift;
+			int lev = (((((coef[j] * weight) >> 2) * (s64)scale) >> 4) + offset) >> shift;  //scale=32768 
             lev = COM_CLIP( lev, -32768, 32767 );
             if( refix )
             {
                 lev = (lev * 181 + 128) >> 8;
             }
-            coef_out[j] = (s16)lev;
+			coef_out[j] = (s16)lev; //+-128±¶Êý
 #else
             int lev = DQUANT(coef[j], weight, scale, offset, shift);
 
@@ -809,7 +809,7 @@ static void com_dquant(int qp, s16 *coef, s16* coef_out, u8* wq_matrix[2], int l
             coef_out[j] = (s16)COM_CLIP(lev, -32768, 32767);
 #endif
         }
-        coef_out += w;
+        coef_out += w;	
         coef += w;
 
         if ((i + 1) % idx_step == 0)
